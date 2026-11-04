@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ATELIER 26 · Colección Otoño</title>
+<style>
+  :root { --tinta: #111; --gris: #8a8a8f; --fondo: #f0f0f0; }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: Helvetica, Arial, sans-serif; background: var(--fondo); color: var(--tinta); overflow-x: hidden; }
+
+  /* ---------- Menú ---------- */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 22px 32px; mix-blend-mode: difference; color: #fff;
+  }
+  .marca { font-weight: 900; letter-spacing: 8px; font-size: 18px; }
+  nav ul { display: flex; gap: 28px; list-style: none; padding: 0; font-size: 12px; letter-spacing: 3px; }
+  nav a { color: inherit; text-decoration: none; position: relative; }
+  nav a::after { content: ""; position: absolute; left: 0; bottom: -4px; width: 0; height: 1px; background: #fff; transition: width .3s; }
+  nav a:hover::after { width: 100%; }
+
+  /* ---------- Portada con barra ---------- */
+  .portada { min-height: 100vh; padding-top: 110px; display: flex; flex-direction: column; position: relative; }
+  .titulo { text-align: center; animation: entra 1s ease backwards; }
+  .titulo small { letter-spacing: 6px; font-size: 11px; color: var(--gris); }
+  .titulo h1 { font-size: clamp(34px, 7vw, 68px); font-weight: 900; letter-spacing: 6px; margin-top: 10px; }
+  @keyframes entra { from { opacity: 0; transform: translateY(30px); } }
+
+  .prendas {
+    display: flex; gap: 30px; margin-top: 60px; position: relative;
+    border-top: 3px solid #9a9a9a;
+    padding: 0 calc(50vw - 80px) 110px;
+    overflow-x: auto; scrollbar-width: none; cursor: grab;
+    scroll-snap-type: x mandatory;
+    animation: entra 1.2s .2s ease backwards;
+  }
+  .prendas::-webkit-scrollbar { display: none; }
+  .prendas.arrastrando { cursor: grabbing; scroll-snap-type: none; }
+
+  .prenda {
+    flex-shrink: 0; width: 160px; text-align: center; scroll-snap-align: center;
+    transform-origin: top center; transition: transform .2s, opacity .2s; user-select: none;
+  }
+  .prenda::before { content: ""; display: block; width: 2px; height: 36px; background: #9a9a9a; margin: 0 auto; }
+  .balanceo { transform-origin: top center; }
+  .prenda:hover .balanceo { animation: balanceo 1.6s ease-in-out; }
+  @keyframes balanceo { 0%,100% { transform: rotate(0); } 25% { transform: rotate(3deg); } 55% { transform: rotate(-2.5deg); } 80% { transform: rotate(1deg); } }
+  .prenda svg { width: 150px; height: 210px; display: block; margin: 0 auto; filter: drop-shadow(0 14px 14px rgba(0,0,0,.18)); pointer-events: none; }
+  .prenda .nombre { margin-top: 12px; font-size: 13px; letter-spacing: 1px; }
+  .prenda .precio { margin-top: 4px; font-size: 12px; color: var(--gris); }
+
+  .flecha {
+    position: absolute; top: 50%; width: 46px; height: 46px; border-radius: 50%;
+    border: 1px solid #0003; background: #fffc; font-size: 18px; cursor: pointer; z-index: 5;
+    transition: transform .3s, background .3s;
+  }
+  .flecha:hover { background: #fff; transform: scale(1.1); }
+  #ant { left: 24px; } #sig { right: 24px; }
+
+  .contador { position: absolute; bottom: 36px; left: 0; right: 0; text-align: center; font-size: 12px; letter-spacing: 4px; color: var(--gris); }
+  .contador b { color: var(--tinta); }
+
+  /* ---------- Secciones ---------- */
+  section.bloque { padding: 110px 32px; max-width: 1100px; margin: 0 auto; }
+  section.bloque h2 { font-size: clamp(28px, 5vw, 46px); letter-spacing: 4px; font-weight: 900; margin-bottom: 14px; }
+  section.bloque > p { max-width: 520px; color: #555; line-height: 1.7; }
+  .look { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-top: 40px; }
+  .tarjeta {
+    height: 340px; border-radius: 6px; padding: 22px; display: flex; align-items: flex-end;
+    color: #fff; font-weight: 900; letter-spacing: 3px; font-size: 18px;
+    background: linear-gradient(160deg, var(--a), var(--b)); transition: transform .5s;
+  }
+  .tarjeta:hover { transform: translateY(-8px); }
+
+  footer { background: var(--tinta); color: #fff; text-align: center; padding: 80px 20px 50px; }
+  footer h3 { font-size: clamp(26px, 5vw, 42px); letter-spacing: 4px; }
+  footer a.cta { display: inline-block; margin-top: 26px; background: #fff; color: var(--tinta); padding: 14px 34px; border-radius: 999px; font-weight: bold; text-decoration: none; transition: transform .3s; }
+  footer a.cta:hover { transform: scale(1.06); }
+  footer small { display: block; margin-top: 50px; color: #888; letter-spacing: 2px; font-size: 11px; }
+
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity .9s ease, transform .9s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ---------- Panel de producto ---------- */
+  .velo { position: fixed; inset: 0; background: #0006; opacity: 0; pointer-events: none; transition: opacity .4s; z-index: 49; }
+  .velo.on { opacity: 1; pointer-events: auto; }
+  .panel {
+    position: fixed; left: 50%; bottom: 0; width: min(520px, 100%); z-index: 50;
+    background: #fff; border-radius: 26px 26px 0 0; padding: 30px 26px 34px; text-align: center;
+    transform: translate(-50%, 110%); transition: transform .55s cubic-bezier(.2,.8,.2,1);
+    box-shadow: 0 -12px 50px #0003;
+  }
+  .panel.abierto { transform: translate(-50%, 0); }
+  .panel svg { width: 96px; height: 120px; filter: drop-shadow(0 10px 10px #0003); }
+  .panel h2 { font-size: 24px; margin-top: 6px; }
+  .panel .p-precio { font-size: 18px; color: #666; margin-top: 4px; }
+  .panel .p-desc { font-size: 14px; color: #777; margin-top: 10px; line-height: 1.5; }
+  .tallas { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
+  .talla { width: 46px; height: 46px; border-radius: 50%; border: 1px solid #ccc; background: #fff; cursor: pointer; font-size: 14px; transition: all .2s; }
+  .talla:hover { border-color: #111; }
+  .talla.elegida { background: #111; color: #fff; border-color: #111; }
+  .pedir { display: inline-block; background: #111; color: #fff; text-decoration: none; font-weight: bold; padding: 15px 34px; border-radius: 999px; transition: transform .3s; }
+  .pedir:hover { transform: scale(1.05); }
+  .cerrar { position: absolute; top: 14px; right: 20px; border: 0; background: none; font-size: 28px; cursor: pointer; }
+
+  @media (max-width: 640px) {
+    nav ul { display: none; }
+    .flecha { display: none; }
+    section.bloque { padding: 80px 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition-duration: .01s !important; } }
+
+  .foto-prenda { width: 160px; height: 200px; margin: 0 auto; border-radius: 6px; overflow: hidden; pointer-events: none; }
+  .foto-prenda img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .prenda:hover .foto-prenda img { transform: scale(1.05); }
+  .foto-prenda img { transition: transform .5s; }
+  #p-img { width: 110px; height: 138px; object-fit: cover; border-radius: 8px; display: none; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<!-- Dibujos de las prendas (se reutilizan con <use>) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="sombra" x1="0" x2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".22"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".22"/>
+    </linearGradient>
+    <symbol id="tee" viewBox="0 0 100 120">
+      <path fill="currentColor" stroke="#0002" d="M30 8 L10 22 L2 48 L18 54 L22 44 L22 112 L78 112 L78 44 L82 54 L98 48 L90 22 L70 8 Q50 26 30 8 Z"/>
+      <path fill="url(#sombra)" d="M30 8 L10 22 L2 48 L18 54 L22 44 L22 112 L78 112 L78 44 L82 54 L98 48 L90 22 L70 8 Q50 26 30 8 Z"/>
+    </symbol>
+    <symbol id="hoodie" viewBox="0 0 100 120">
+      <path fill="currentColor" stroke="#0002" d="M32 8 Q50 -2 68 8 L92 28 L97 104 L80 106 L78 54 L78 114 L22 114 L22 54 L20 106 L3 104 L8 28 Z"/>
+      <path fill="url(#sombra)" d="M32 8 Q50 -2 68 8 L92 28 L97 104 L80 106 L78 54 L78 114 L22 114 L22 54 L20 106 L3 104 L8 28 Z"/>
+      <path fill="#0003" d="M34 8 Q50 36 66 8 Q50 -4 34 8 Z"/>
+      <path fill="none" stroke="#0003" stroke-width="1.5" d="M34 80 H66 L70 100 H30 Z"/>
+    </symbol>
+    <symbol id="jacket" viewBox="0 0 100 120">
+      <path fill="currentColor" stroke="#0002" d="M36 6 L50 16 L64 6 L90 22 L96 106 L80 108 L78 50 L78 114 L22 114 L22 50 L20 108 L4 106 L10 22 Z"/>
+      <path fill="url(#sombra)" d="M36 6 L50 16 L64 6 L90 22 L96 106 L80 108 L78 50 L78 114 L22 114 L22 50 L20 108 L4 106 L10 22 Z"/>
+      <path fill="none" stroke="#0004" stroke-width="1.5" d="M50 16 V114 M36 6 L50 24 L64 6"/>
+    </symbol>
+  </defs>
+</svg>
+
+<nav>
+  <div class="marca">ATELIER 26</div>
+  <ul>
+    <li><a href="#coleccion">COLECCIÓN</a></li>
+    <li><a href="#lookbook">LOOKBOOK</a></li>
+    <li><a href="#contacto">CONTACTO</a></li>
+  </ul>
+</nav>
+
+<header class="portada" id="coleccion">
+  <div class="titulo">
+    <small>COLECCIÓN OTOÑO · 2026</small>
+    <h1>VISTE DIFERENTE</h1>
+  </div>
+
+  <button class="flecha" id="ant" aria-label="Anterior">←</button>
+  <button class="flecha" id="sig" aria-label="Siguiente">→</button>
+
+  <main class="prendas" id="prendas">
+    <article class="prenda" data-desc="Hoodie oversize en algodón grueso con lavado vintage y bolsillo canguro." data-tipo="hoodie" data-color="#4a4d52">
+      <div class="balanceo">
+        <div class="foto-prenda">
+          <img class="frente" src="img/hoodie-gris.webp" onerror="this.onerror=null;this.src='img/hoodie-gris.jpg'" alt="Hoodie Gris">
+        </div>
+      </div>
+      <p class="nombre">Hoodie Gris</p><p class="precio">$890</p>
+    </article>
+    <article class="prenda" data-desc="Playera de algodón peinado, suave y de caída ligera." data-tipo="tee" data-color="#f2762e">
+      <div class="balanceo"><svg viewBox="0 0 100 140" style="color:#f2762e"><path d="M50 4 L8 26 H92 Z" fill="none" stroke="#888" stroke-width="1.5"/><use href="#tee" y="20" width="100" height="120"/></svg></div>
+      <p class="nombre">Playera Naranja</p><p class="precio">$450</p>
+    </article>
+    <article class="prenda" data-desc="Chamarra con cierre completo y cuello alto. Resistente al viento." data-tipo="jacket" data-color="#1f2a44">
+      <div class="balanceo"><svg viewBox="0 0 100 140" style="color:#1f2a44"><path d="M50 4 L8 26 H92 Z" fill="none" stroke="#888" stroke-width="1.5"/><use href="#jacket" y="20" width="100" height="120"/></svg></div>
+      <p class="nombre">Chamarra Azul</p><p class="precio">$1,200</p>
+    </article>
+    <article class="prenda" data-desc="Playera básica de corte regular. Va con todo." data-tipo="tee" data-color="#e0301e">
+      <div class="balanceo"><svg viewBox="0 0 100 140" style="color:#e0301e"><path d="M50 4 L8 26 H92 Z" fill="none" stroke="#888" stroke-width="1.5"/><use href="#tee" y="20" width="100" height="120"/></svg></div>
+      <p class="nombre">Playera Roja</p><p class="precio">$450</p>
+    </article>
+    <article class="prenda" data-desc="Sudadera ligera con capucha, ideal para días frescos." data-tipo="hoodie" data-color="#4fb36b">
+      <div class="balanceo"><svg viewBox="0 0 100 140" style="color:#4fb36b"><path d="M50 4 L8 26 H92 Z" fill="none" stroke="#888" stroke-width="1.5"/><use href="#hoodie" y="20" width="100" height="120"/></svg></div>
+      <p class="nombre">Hoodie Verde</p><p class="precio">$790</p>
+    </article>
+    <article class="prenda" data-desc="Chamarra ligera de color neutro. Combina con cualquier look." data-tipo="jacket" data-color="#e7e7e4">
+      <div class="balanceo"><svg viewBox="0 0 100 140" style="color:#e7e7e4"><path d="M50 4 L8 26 H92 Z" fill="none" stroke="#888" stroke-width="1.5"/><use href="#jacket" y="20" width="100" height="120"/></svg></div>
+      <p class="nombre">Chamarra Hueso</p><p class="precio">$1,050</p>
+    </article>
+  </main>
+
+  <div class="contador"><b id="num">01</b> / <span id="total">06</span> &nbsp;·&nbsp; DESLIZA, ARRASTRA O USA LAS FLECHAS</div>
+</header>
+
+<section class="bloque" id="lookbook">
+  <h2 class="reveal">LOOKBOOK</h2>
+  <p class="reveal">Tres ambientes para esta temporada: colores sólidos, cortes amplios y telas que se sienten tan bien como se ven.</p>
+  <div class="look">
+    <div class="tarjeta reveal" style="--a:#f2c230;--b:#f2762e">CALLE</div>
+    <div class="tarjeta reveal" style="--a:#1f2a44;--b:#4a5d8f">NOCHE</div>
+    <div class="tarjeta reveal" style="--a:#4fb36b;--b:#1f5d3a">PARQUE</div>
+  </div>
+</section>
+
+<footer id="contacto">
+  <h3 class="reveal">¿LISTO PARA ESTRENAR?</h3>
+  <a class="cta reveal" href="https://wa.me/525500000000?text=Hola%2C%20quiero%20informaci%C3%B3n%20de%20la%20colecci%C3%B3n" target="_blank">Escríbenos por WhatsApp</a>
+  <small>© 2026 ATELIER 26 · DEMO DE PRÁCTICA</small>
+</footer>
+
+<div class="velo" id="velo"></div>
+<section class="panel" id="panel">
+  <button class="cerrar" id="cerrar" aria-label="Cerrar">×</button>
+  <img id="p-img" alt="">
+  <svg viewBox="0 0 100 120" id="p-svg"><use href="#tee"/></svg>
+  <h2 id="p-nombre"></h2>
+  <p class="p-precio" id="p-precio"></p>
+  <p class="p-desc" id="p-desc"></p>
+  <div class="tallas">
+    <button class="talla">S</button>
+    <button class="talla elegida">M</button>
+    <button class="talla">L</button>
+    <button class="talla">XL</button>
+  </div>
+  <a class="pedir" id="pedir" href="#" target="_blank">Pedir por WhatsApp</a>
+</section>
+
+<script>
+  const barra = document.getElementById('prendas');
+  const prendas = [...barra.querySelectorAll('.prenda')];
+  const NUMERO = '525500000000';           // <- cambia por el número real
+
+  document.getElementById('total').textContent = String(prendas.length).padStart(2, '0');
+
+  /* Efecto: la prenda del centro crece y las demás se atenúan */
+  function actualizar() {
+    const centro = barra.scrollLeft + barra.clientWidth / 2;
+    let mejor = 0, menor = Infinity;
+    prendas.forEach((p, k) => {
+      const d = Math.abs(centro - (p.offsetLeft + p.offsetWidth / 2));
+      if (d < menor) { menor = d; mejor = k; }
+      const c = Math.max(0, 1 - d / 320);
+      p.style.transform = 'scale(' + (0.82 + c * 0.38) + ')';
+      p.style.opacity = 0.35 + c * 0.65;
+    });
+    document.getElementById('num').textContent = String(mejor + 1).padStart(2, '0');
+    return mejor;
+  }
+  barra.addEventListener('scroll', actualizar);
+  addEventListener('resize', actualizar);
+  actualizar();
+
+  function irA(k) {
+    k = Math.max(0, Math.min(prendas.length - 1, k));
+    prendas[k].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+  document.getElementById('ant').onclick = () => irA(actualizar() - 1);
+  document.getElementById('sig').onclick = () => irA(actualizar() + 1);
+
+  /* Arrastrar con el mouse */
+  let abajo = false, x0 = 0, s0 = 0, movio = false;
+  barra.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse') return;
+    abajo = true; movio = false; x0 = e.clientX; s0 = barra.scrollLeft;
+  });
+  addEventListener('pointermove', e => {
+    if (!abajo) return;
+    const dx = e.clientX - x0;
+    if (Math.abs(dx) > 5) { movio = true; barra.classList.add('arrastrando'); }
+    barra.scrollLeft = s0 - dx;
+  });
+  addEventListener('pointerup', () => {
+    if (!abajo) return;
+    abajo = false;
+    if (movio) { irA(actualizar()); setTimeout(() => barra.classList.remove('arrastrando'), 400); }
+  });
+
+  /* Teclado */
+  addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft') irA(actualizar() - 1);
+    if (e.key === 'ArrowRight') irA(actualizar() + 1);
+    if (e.key === 'Escape') cerrarPanel();
+  });
+
+  /* Panel de producto */
+  const panel = document.getElementById('panel'), velo = document.getElementById('velo');
+  let actual = null;
+
+  function linkWhatsApp() {
+    const nombre = actual.querySelector('.nombre').textContent;
+    const talla = document.querySelector('.talla.elegida').textContent;
+    document.getElementById('pedir').href =
+      'https://wa.me/' + NUMERO + '?text=' + encodeURIComponent('Hola, quiero la ' + nombre + ' en talla ' + talla);
+  }
+  function abrirPanel(p) {
+    actual = p;
+    document.getElementById('p-nombre').textContent = p.querySelector('.nombre').textContent;
+    document.getElementById('p-precio').textContent = p.querySelector('.precio').textContent;
+    document.getElementById('p-desc').textContent = p.dataset.desc;
+    const svg = document.getElementById('p-svg');
+    const img = document.getElementById('p-img');
+    const foto = p.querySelector('.frente');
+    if (foto) {                                  // prenda con foto real
+      img.src = foto.currentSrc || foto.src;
+      img.style.display = 'block'; svg.style.display = 'none';
+    } else {                                     // prenda dibujada
+      svg.style.color = p.dataset.color;
+      svg.innerHTML = '<use href="#' + p.dataset.tipo + '"/>';
+      svg.style.display = 'block'; img.style.display = 'none';
+    }
+    linkWhatsApp();
+    panel.classList.add('abierto'); velo.classList.add('on');
+  }
+  function cerrarPanel() { panel.classList.remove('abierto'); velo.classList.remove('on'); }
+
+  prendas.forEach((p, k) => p.addEventListener('click', () => {
+    if (movio) return;                       // si fue un arrastre, no abre
+    irA(k); abrirPanel(p);
+  }));
+  document.querySelectorAll('.talla').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.talla').forEach(x => x.classList.remove('elegida'));
+    t.classList.add('elegida'); linkWhatsApp();
+  }));
+  document.getElementById('cerrar').onclick = cerrarPanel;
+  velo.onclick = cerrarPanel;
+
+  /* Aparecer al hacer scroll */
+  const obs = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+  }), { threshold: 0.2 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
